@@ -14,7 +14,7 @@ app = Celery('tasks', broker='redis://localhost:6379')
 app.conf.timezone = 'Europe/Moscow'
 
 app.conf.beat_schedule = {
-    'add-every-10-seconds': {
+    'add_every_day_at_8am': {
         'task': 'send_message',
         'schedule': crontab(minute=0, hour=8),
     },
