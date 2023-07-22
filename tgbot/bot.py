@@ -9,18 +9,27 @@ from pyrogram import Client
 
 from tgbot.text import text
 
-app = Celery('tasks', broker='redis://localhost:6379')
+load_dotenv()
+
+app = Celery(
+    'tasks',
+    broker='redis://{}:{}'.format(
+        os.getenv('REDIS_HOST'),
+        os.getenv('REDIS_PORT')
+    )
+)
 
 app.conf.timezone = 'Europe/Moscow'
 
 app.conf.beat_schedule = {
     'add_every_day_at_8am': {
         'task': 'send_message',
-        'schedule': crontab(minute=0, hour=8),
+        'schedule': crontab(
+            minute=int(os.getenv('MINUTE')),
+            hour=int(os.getenv('HOUR'))
+        ),
     },
 }
-
-load_dotenv()
 
 api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
