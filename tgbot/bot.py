@@ -1,11 +1,13 @@
 import os
+from datetime import date
 
+import emoji
 from celery import Celery
-# from celery.app.base import add_periodic_task
 from celery.schedules import crontab
-import threading
 from dotenv import load_dotenv
 from pyrogram import Client
+
+from tgbot.text import text
 
 app = Celery('tasks', broker='redis://localhost:6379')
 
@@ -13,10 +15,8 @@ app.conf.timezone = 'Europe/Moscow'
 
 app.conf.beat_schedule = {
     'add-every-10-seconds': {
-        'task': 'tasks.main',
-        # 'schedule': crontab(minute=0, hour=10),
-        'schedule': 10.0,
-        # 'args': (16, 16)
+        'task': 'send_message',
+        'schedule': crontab(minute=0, hour=8),
     },
 }
 
@@ -34,22 +34,13 @@ bot_client = Client(
 )
 
 
-def run_celery():
-    argv = [
-        "-A", "tasks", 'worker', '--loglevel=info', "--pool=threads"
-    ]
-    app.worker_main(argv)
-
-
-# @add_periodic_task(10.0)
-@app.task
-async def main():
-    async with bot_client:
-        await bot_client.send_message(channel_name, "hhg hgbkjhg  bghtvfcdsdazsdzds")
-
-
-if __name__ == '__main__':
-    bot_client.start()
-    threading.Thread(target=run_celery, daemon=True).start()
-    idle()
-    bot_client.stop()
+@app.task(name='send_message')
+def send_message():
+    dt = date.today()
+    with bot_client:
+        bot_client.send_message(
+            channel_name,
+            emoji.emojize(
+                f"{text}{dt}"
+            )
+        )
