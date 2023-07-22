@@ -1,0 +1,34 @@
+version: "3.7"
+services:
+  tgbot:
+    build:
+      context: .
+    env_file:
+      - .env
+    container_name: tgbot
+    ports:
+      - 8000:8000
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - 6378:6378
+  celery:
+    build:
+      context: .
+    env_file:
+      - .env
+    container_name: celery
+    command: ["/tgbot/celery.sh", "celery"]
+    depends_on:
+      - redis
+  beat:
+    build:
+      context: .
+    env_file:
+      - .env
+    container_name: beat
+    command: ["/tgbot/celery.sh", "beat"]
+    depends_on:
+      - redis
+      - celery
